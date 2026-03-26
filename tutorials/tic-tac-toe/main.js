@@ -254,6 +254,9 @@ function zugVerarbeiten(user, position) {
     var gewinner = gewinnerpruefung(aktuellesSpiel.feld);
 
     if (gewinner !== null) {
+        // Letzten Spielzustand senden, damit der Gewinnerzug sichtbar wird
+        sendeSpielUpdate(aktuellesSpiel.spielerX);
+        sendeSpielUpdate(aktuellesSpiel.spielerO);
         spielBeenden(gewinner);
         return;
     }
@@ -268,6 +271,9 @@ function zugVerarbeiten(user, position) {
     }
 
     if (allesBelegt) {
+        // Letzten Spielzustand senden, damit der letzte Zug sichtbar wird
+        sendeSpielUpdate(aktuellesSpiel.spielerX);
+        sendeSpielUpdate(aktuellesSpiel.spielerO);
         spielBeenden('unentschieden');
         return;
     }
