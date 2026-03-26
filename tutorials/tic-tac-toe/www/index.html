@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            color: #e94560;
+        }
+
+        .info {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+
+        /* ---------- Navigations-Tabs ---------- */
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: #16213e;
+            color: #aaa;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .tab.active {
+            background: #0f3460;
+            color: #fff;
+        }
+
+        /* ---------- Seiten ---------- */
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ---------- Spielfeld ---------- */
+
+        .spielfeld {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            max-width: 300px;
+            margin: 15px auto;
+        }
+
+        .zelle {
+            aspect-ratio: 1;
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .zelle:hover {
+            background: #1a3a5c;
+        }
+
+        .zelle:active {
+            transform: scale(0.95);
+        }
+
+        .zelle.x {
+            color: #e94560;
+        }
+
+        .zelle.o {
+            color: #00d2ff;
+        }
+
+        .zelle.gesperrt {
+            cursor: default;
+        }
+
+        .zelle.gesperrt:hover {
+            background: #16213e;
+        }
+
+        .zelle.gesperrt:active {
+            transform: none;
+        }
+
+        /* ---------- Status-Anzeige ---------- */
+
+        .status {
+            font-size: 16px;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #16213e;
+        }
+
+        .status.gewonnen {
+            background: #1b5e20;
+            color: #a5d6a7;
+        }
+
+        .status.verloren {
+            background: #b71c1c;
+            color: #ef9a9a;
+        }
+
+        .status.unentschieden {
+            background: #e65100;
+            color: #ffcc80;
+        }
+
+        /* ---------- Buttons ---------- */
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            transition: background 0.2s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #e94560;
+        }
+
+        .btn-primary:hover {
+            background: #c73650;
+        }
+
+        .btn-secondary {
+            background: #0f3460;
+        }
+
+        .btn-secondary:hover {
+            background: #16213e;
+        }
+
+        /* ---------- Bestenliste ---------- */
+
+        .topliste {
+            text-align: left;
+            width: 100%;
+        }
+
+        .topliste-eintrag {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            background: #16213e;
+            border-radius: 8px;
+        }
+
+        .topliste-eintrag:nth-child(1) {
+            background: #3a2e00;
+            border: 1px solid #ffd700;
+        }
+
+        .topliste-eintrag:nth-child(2) {
+            background: #2a2a2a;
+            border: 1px solid #c0c0c0;
+        }
+
+        .topliste-eintrag:nth-child(3) {
+            background: #2a1a0a;
+            border: 1px solid #cd7f32;
+        }
+
+        .rang {
+            font-size: 18px;
+            font-weight: bold;
+            width: 35px;
+            color: #e94560;
+        }
+
+        .spieler-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .siege-zahl {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00d2ff;
+        }
+
+        .leer-text {
+            color: #666;
+            padding: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <h1>Tic-Tac-Toe</h1>
+        <p class="info" id="begruessung">Willkommen!</p>
+
+        <!-- Navigations-Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="zeigeSeite('spiel')">Spiel</button>
+            <button class="tab" onclick="zeigeSeite('bestenliste')">Bestenliste</button>
+        </div>
+
+        <!-- Seite: Spiel -->
+        <div id="seite-spiel" class="page active">
+            <div id="status" class="status">
+                Klicke auf "Spiel starten", um einen Gegner zu suchen.
+            </div>
+
+            <div id="spielfeld-container" style="display: none;">
+                <div class="spielfeld" id="spielfeld"></div>
+            </div>
+
+            <div id="aktionen">
+                <button class="btn btn-primary" id="btn-start" onclick="spielStarten()">
+                    Spiel starten
+                </button>
+                <button class="btn btn-secondary" id="btn-nochmal" onclick="spielStarten()" style="display: none;">
+                    Nochmal spielen
+                </button>
+            </div>
+        </div>
+
+        <!-- Seite: Bestenliste -->
+        <div id="seite-bestenliste" class="page">
+            <div id="topliste-inhalt">
+                <p class="leer-text">Lade Bestenliste...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Initialisierung =====
+
+        var pageData = {};
+        if (typeof Client !== 'undefined') {
+            pageData = Client.pageData;
+        } else {
+            // Testdaten für lokales Testen im Browser
+            pageData = { username: 'TestUser', siege: 5 };
+        }
+
+        document.getElementById('begruessung').textContent =
+            'Hallo, ' + pageData.username + '! (Siege: ' + pageData.siege + ')';
+
+        // ===== Seiten-Navigation =====
+
+        function zeigeSeite(seite) {
+            // Alle Seiten ausblenden
+            var seiten = document.querySelectorAll('.page');
+            for (var i = 0; i < seiten.length; i++) {
+                seiten[i].classList.remove('active');
+            }
+            // Alle Tabs deaktivieren
+            var tabs = document.querySelectorAll('.tab');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+
+            // Gewählte Seite anzeigen
+            document.getElementById('seite-' + seite).classList.add('active');
+
+            // Tab markieren
+            var index = seite === 'spiel' ? 0 : 1;
+            tabs[index].classList.add('active');
+
+            // Bei Bestenliste: Daten vom Server laden
+            if (seite === 'bestenliste') {
+                if (typeof Client !== 'undefined' && Client.sendEvent) {
+                    Client.sendEvent('getToplist', {});
+                }
+            }
+        }
+
+        // ===== Spiel starten =====
+
+        function spielStarten() {
+            document.getElementById('status').textContent = 'Suche Gegner...';
+            document.getElementById('status').className = 'status';
+            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('btn-nochmal').style.display = 'none';
+            document.getElementById('spielfeld-container').style.display = 'none';
+
+            if (typeof Client !== 'undefined' && Client.sendEvent) {
+                Client.sendEvent('spielBeitreten', {});
+            }
+        }
+
+        // ===== Spielfeld zeichnen =====
+
+        function spielfeldZeichnen(feld, amZug, meinSymbol) {
+            var container = document.getElementById('spielfeld');
+            container.innerHTML = '';
+
+            var istMeinZug = amZug === meinSymbol;
+
+            for (var i = 0; i < 9; i++) {
+                var zelle = document.createElement('div');
+                zelle.className = 'zelle';
+
+                if (feld[i] === 'X') {
+                    zelle.textContent = 'X';
+                    zelle.classList.add('x', 'gesperrt');
+                } else if (feld[i] === 'O') {
+                    zelle.textContent = 'O';
+                    zelle.classList.add('o', 'gesperrt');
+                } else if (istMeinZug) {
+                    // Leeres Feld und ich bin dran -> klickbar
+                    zelle.setAttribute('data-pos', i);
+                    zelle.addEventListener('click', function() {
+                        var pos = parseInt(this.getAttribute('data-pos'));
+                        zugSenden(pos);
+                    });
+                } else {
+                    zelle.classList.add('gesperrt');
+                }
+
+                container.appendChild(zelle);
+            }
+        }
+
+        // ===== Zug an den Server senden =====
+
+        function zugSenden(position) {
+            if (typeof Client !== 'undefined' && Client.sendEvent) {
+                Client.sendEvent('zug', { position: position });
+            }
+        }
+
+        // ===== Hilfsfunktion: HTML-Sonderzeichen escapen (XSS-Schutz) =====
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
+
+        // ===== Bestenliste anzeigen =====
+
+        function toplisteAnzeigen(liste) {
+            var container = document.getElementById('topliste-inhalt');
+
+            if (liste.length === 0) {
+                container.innerHTML = '<p class="leer-text">Noch keine Einträge vorhanden. Spiele ein Spiel!</p>';
+                return;
+            }
+
+            var html = '<div class="topliste">';
+            for (var i = 0; i < liste.length; i++) {
+                var eintrag = liste[i];
+                html += '<div class="topliste-eintrag">';
+                html += '<span class="rang">#' + eintrag.position + '</span>';
+                html += '<span class="spieler-name">' + escapeHtml(eintrag.name) + '</span>';
+                html += '<span class="siege-zahl">' + eintrag.siege + ' Siege</span>';
+                html += '</div>';
+            }
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // ===== Events vom Server empfangen =====
+
+        if (typeof Client !== 'undefined') {
+
+            // Spielfeld-Update
+            Client.addEventListener('spielUpdate', function(event) {
+                var d = event.data;
+                document.getElementById('spielfeld-container').style.display = 'block';
+                document.getElementById('btn-start').style.display = 'none';
+                document.getElementById('btn-nochmal').style.display = 'none';
+
+                var istDran = d.amZug === d.meinSymbol;
+                if (istDran) {
+                    document.getElementById('status').textContent =
+                        'Du bist dran! (Du spielst ' + d.meinSymbol + ')';
+                } else {
+                    document.getElementById('status').textContent =
+                        d.gegnerName + ' ist am Zug... (Du spielst ' + d.meinSymbol + ')';
+                }
+                document.getElementById('status').className = 'status';
+
+                spielfeldZeichnen(d.feld, d.amZug, d.meinSymbol);
+            });
+
+            // Spielergebnis
+            Client.addEventListener('spielErgebnis', function(event) {
+                var d = event.data;
+                var statusEl = document.getElementById('status');
+
+                if (d.ergebnis === 'unentschieden') {
+                    statusEl.textContent = 'Unentschieden!';
+                    statusEl.className = 'status unentschieden';
+                } else if (d.gewinnerName === pageData.username) {
+                    statusEl.textContent = 'Du hast gewonnen!';
+                    statusEl.className = 'status gewonnen';
+                    pageData.siege++;
+                    document.getElementById('begruessung').textContent =
+                        'Hallo, ' + pageData.username + '! (Siege: ' + pageData.siege + ')';
+                } else {
+                    statusEl.textContent = d.gewinnerName + ' hat gewonnen!';
+                    statusEl.className = 'status verloren';
+                }
+
+                document.getElementById('btn-nochmal').style.display = 'inline-block';
+            });
+
+            // Spiel abgebrochen
+            Client.addEventListener('spielAbgebrochen', function(event) {
+                document.getElementById('status').textContent = 'Der Gegner hat das Spiel verlassen.';
+                document.getElementById('status').className = 'status';
+                document.getElementById('spielfeld-container').style.display = 'none';
+                document.getElementById('btn-start').style.display = 'inline-block';
+            });
+
+            // Bestenliste empfangen
+            Client.addEventListener('toplist', function(event) {
+                toplisteAnzeigen(event.data.liste);
+            });
+        }
+    </script>
+</body>
+</html>
